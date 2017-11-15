@@ -2,10 +2,11 @@ package main
 
 import (
 	"fmt"
-	"github.com/Md-Cake/fswatcher"
-	"time"
 	"os"
 	"syscall"
+	"time"
+
+	"github.com/unrealsync/fswatcher"
 )
 
 func main() {
@@ -22,7 +23,7 @@ func main() {
 	go fswatcher.RunWatcher(path, notifyChannel)
 	for {
 		select {
-		case changedPath := <- notifyChannel:
+		case changedPath := <-notifyChannel:
 			if changedPath == fswatcher.LOCAL_WATCHER_READY {
 				fmt.Printf("%s\t\tWatcher ready\n", time.Now())
 			} else {
