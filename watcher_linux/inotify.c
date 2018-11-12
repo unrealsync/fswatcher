@@ -175,7 +175,7 @@ static int add_watch(int path_len, watch_node* parent) {
     CHECK_NULL(array_push(parent->kids, node), ERR_ABORT);
   }
 
-  if (table_put(watches, wd, node) == NULL) {
+  if (table_put(watches, wd, node)) {
     userlog(LOG_ERR, "table error: unable to put (%d:%s)", wd, path_buf);
     return ERR_ABORT;
   }

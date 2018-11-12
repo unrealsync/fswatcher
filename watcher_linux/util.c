@@ -123,60 +123,92 @@ void array_delete_data(array* a) {
   }
 }
 
+typedef struct node {
+    int key;
+    void *value;
+    struct node *next;
+} node;
 
 struct __table {
-  void** data;
-  int capacity;
+    node* nodes[16];
 };
 
-table* table_create(int capacity) {
+table* table_create() {
   table* t = malloc(sizeof(table));
   if (t == NULL) {
     return NULL;
   }
 
-  t->data = calloc(sizeof(void*), capacity);
-  if (t->data == NULL) {
-    free(t);
-    return NULL;
-  }
-  memset(t->data, 0, sizeof(void*) * capacity);
-
-  t->capacity = capacity;
+  memset(t->nodes, 0, sizeof(struct node*) * 16);
 
   return t;
 }
 
 static inline int wrap(int key, table* t) {
-  return (t != NULL ? key % t->capacity : -1);
+  return (t != NULL ? key % 16 : -1);
 }
 
-// todo: resolve collisions (?)
-void* table_put(table* t, int key, void* value) {
-  int k = wrap(key, t);
-  if (k < 0 || (value != NULL && t->data[k] != NULL)) {
-    return NULL;
-  }
-  else {
-    return t->data[k] = value;
-  }
+int table_put(table* t, int key, void* value) {
+    int k = wrap(key, t);
+    if (k < 0) {
+        return 1;
+    }
+    node *prev = NULL, *n;
+    node **ptr = &t->nodes[k];
+    if (t->nodes[k] != NULL) {
+        for (n = t->nodes[k]; n != NULL; n = n->next) {
+            if (n->key == key && value != NULL) {
+                /*no replace*/
+                return 2;
+            } else if (n->key == key) {
+                if (prev == NULL) {
+                    t->nodes[k] = n->next;
+                } else {
+                    prev->next = n->next;
+                }
+                free(n);
+                return 0;
+            }
+            prev = n;
+        }
+        ptr = &prev->next;
+    }
+    if (value == NULL) {
+        return 0;
+    }
+
+    node* new_node = malloc(sizeof(node));
+    if (new_node == NULL) {
+        return 3;
+    }
+    new_node->key = key;
+    new_node->value = value;
+    new_node->next = NULL;
+    *ptr = new_node;
+    return 0;
 }
 
 void* table_get(table* t, int key) {
-  int k = wrap(key, t);
-  if (k < 0) {
+    int k = wrap(key, t);
+    if (k < 0) {
+        return NULL;
+    }
+    node *n;
+    for (n = t->nodes[k]; n != NULL; n = n->next) {
+        if (n->key == key) return n->value;
+    }
     return NULL;
-  }
-  else {
-    return t->data[k];
-  }
 }
 
 void table_delete(table* t) {
-  if (t != NULL) {
-    free(t->data);
+    int i;
+    for (i = 0; i < 16; i++) {
+        node* n = t->nodes[i];
+        for (;n != NULL; n = n->next) {
+            free(n);
+        }
+    }
     free(t);
-  }
 }
 
 

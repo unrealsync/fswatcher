@@ -52,8 +52,8 @@ void array_delete_data(array* a);
 // poor man's hash table
 typedef struct __table table;
 
-table* table_create(int capacity);
-void* table_put(table* t, int key, void* value);
+table* table_create();
+int table_put(table* t, int key, void* value);
 void* table_get(table* t, int key);
 void table_delete(table* t);
 
