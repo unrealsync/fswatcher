@@ -21,17 +21,17 @@ static void printChangesFunc(ConstFSEventStreamRef streamRef, void *clientCallBa
 }
 
 void initFSEvents(const char *path) {
-	
+
 	/* Define variables and create a CFArray object containing
 	 CFString objects containing paths to watch.
 	 */
-	
+
 	CFStringRef mypath = CFStringCreateWithCString(NULL, path, kCFStringEncodingUTF8);
 	CFArrayRef pathsToWatch = CFArrayCreate(NULL, (const void **)&mypath, 1, NULL);
 	void *callbackInfo = NULL; // could put stream-specific data here.
 	FSEventStreamRef stream;
 	CFAbsoluteTime latency = 0.0; /* Latency in seconds */
-	
+
 	/* Create the stream, passing in a callback */
 	stream = FSEventStreamCreate(NULL,
 	                             &printChangesFunc,
@@ -41,19 +41,19 @@ void initFSEvents(const char *path) {
 	                             latency,
 	                             kFSEventStreamCreateFlagNone|kFSEventStreamCreateFlagNoDefer /* Flags explained in reference */
 	                             );
-	
+
 	CFRelease(pathsToWatch);
 	CFRelease(mypath);
-	
+
 	/* Create the stream before calling this. */
-	FSEventStreamScheduleWithRunLoop(stream, CFRunLoopGetCurrent(), kCFRunLoopDefaultMode);
+	FSEventStreamSetDispatchQueue(stream, dispatch_get_main_queue());
 	FSEventStreamStart(stream);
 }
 
 void doRun (char *path) {
-	
+
 	struct stat tmp;
-	
+
 	if(stat(path, &tmp) != 0) {
 		return;
 	}
